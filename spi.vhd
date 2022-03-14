@@ -2,18 +2,16 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
---Tested on FPGA
+--Tested on FPGA, 10Mhz, upto 512bits
 entity spi_master is
     generic (
-        transaction_length : natural := 8 * 8);
+        transaction_length : natural := 1 * 8);
     port (
         clock :in std_logic;
         clr : in std_logic;
 
         data_tx : in std_logic_vector(transaction_length - 1 downto 0);  -- data to be sent
-        data_tx_rdy : in std_logic; -- data ready to be written from data_tx register and starts the transimision in the next clock cycle
-
-        --data_reg : out std_logic_vector(transaction_length - 1 downto 0);
+        data_tx_rdy : in std_logic; -- (load) data ready to be written from data_tx register and starts the transimision in the next clock cycle
 
         data_rx : out std_logic_vector(transaction_length - 1 downto 0);  -- data recieved from slave
         data_rx_rdy : out std_logic; -- data ready to be read from data_rx register
@@ -84,16 +82,16 @@ begin
     end process ; -- bit_count_pr
 
     -- miso 
-    -- miso_pr : process(sck_s,clr)
-    --     begin
-    --         if clr = '0' then
-    --             data_rx_reg <= (others => '0');
-    --         elsif falling_edge(sck_s) and cs_s = '0' then
-    --             data_rx_reg(0) <= miso;
-    --             data_rx_reg(transaction_length - 1 downto 1) <= data_rx_reg(transaction_length - 2 downto 0);
-    --             -- data_rx_reg(transaction_length - 1 - bit_count) <= miso;
-    --         end if;
-    -- end process ; -- miso_pr
+    miso_pr : process(sck_s,clr)
+        begin
+            if clr = '0' then
+                data_rx_reg <= (others => '0');
+            elsif falling_edge(sck_s) and cs_s = '0' then
+                
+                data_rx_reg(transaction_length - 1 - bit_count) <= miso;
+            
+            end if;
+    end process ; -- miso_pr
 
     data_rx_rdy <= cs_s;
 
